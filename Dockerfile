@@ -1,14 +1,36 @@
-# Step 1: Build Angular App
-FROM node:18 AS build
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-# Copy the rest of the code and build
-COPY . .
-RUN NODE_OPTIONS="--max_old_space_size=4096" npm run build
+# Stage 1: Build the Angular application
+FROM node:18-alpine AS build
 
-# Step 2: Use Nginx to Serve Angular App
-FROM nginx:alpine
-COPY --from=build /app/dist/banking-portal/ /usr/share/nginx/html/
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+WORKDIR /app
+
+# Copy package.json and package-lock.json
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the application code
+COPY . .
+
+# Build the Angular application
+RUN npm run build --prod
+
+# Stage 2: Serve the Angular application with Node.js
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy the built Angular application from the build stage
+COPY --from=build /app/dist/banking-portal /app/dist/banking-portal
+
+# Copy the server file
+COPY server.js .
+
+# Install Express
+RUN npm install express
+
+# Expose port 8080
+EXPOSE 8080
+
+# Start the Node.js server
+CMD ["node", "server.js"]

@@ -10,30 +10,37 @@
 - Transaction History: Users can view their transaction history.
 
 
-## Installation and Setup
+## Deployment steps to OCP
 
-1. Navigate to the project directory:
+1. We have added Dockerfile please take the latest source code.
 
-    ```sh
-    cd banking-portal-ui
-    ```
+2. Replace API endpoint with your banking api deployed in OCP
+   filapath: **src/environment/environment.ts** and **src/environment/environment.prod.ts**
 
-2. Install the required dependencies:
+3. Connect to your OCP cluster either via Web OC CLI or local OC CLI using **copy login command** from right top drop down.
+4. Once connected navigate to the project space:
+   Run below command :
 
-    ```sh
-    npm install
-    ```
+   ```oc new-app <YOUR_GIT_URL> --name=ocphackathon-ui```
 
-3. Start the development server:
+   This command will create you buildConfig.yaml, deploymeny.yaml and servive.yaml
 
-    ```sh
-    ng serve
-    ```
+   **buildconfig.yaml:** Builds an image from the source code (Git, Dockerfile, binary).
+   
+   **deployment.yaml:** Deploys the built image as a running container in OpenShift.
+   
+   **service.yaml:** Exposes the deployment inside OpenShift as a network service.
 
-    or
+5. Build will get fail due to memory issue.
+   Add below code in **buildconfig.yaml** under resources tab
+```
+   limits:
+   
+      memory: 2Gi
+   
+    requests:
+   
+      memory: 2Gi
+```
 
-    ```sh
-    npm start
-    ```
-
-4. Open your web browser and visit [http://localhost:4200](http://localhost:4200) to access the Banking Portal UI.
+6. Start build
